@@ -211,8 +211,8 @@ Open in browser:
 Atiqad hayat 
 Bilal sami
 
-- Backend Development: Spring Boot APIs, database design, security implementation
-- Frontend Development: User interface, pages, and user interaction
+- **Team Leader: Atiqad Hayat** - Backend Development (Spring Boot APIs, database design, Spring Security, business logic, and result processing)
+- **Team Member: Bilal Sami** - Frontend Development (UI implementation with Thymeleaf, page design, and user interaction flows)
 
 ## Technologies Used
 
@@ -226,4 +226,3 @@ Bilal sami
 ## License
 
 This project is developed for academic purposes.
-
