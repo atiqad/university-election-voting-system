@@ -208,6 +208,8 @@ Open in browser:
 8. Results are displayed automatically
 
 ## Team Contribution
+Atiqad hayat 
+Bilal sami
 
 - Backend Development: Spring Boot APIs, database design, security implementation
 - Frontend Development: User interface, pages, and user interaction
