@@ -34,6 +34,20 @@ public class VoteService {
         this.activityLogService = activityLogService;
     }
 
+/**
+ * Casts a vote for a student.
+ *
+ * Business rules:
+ * 1. Only students can vote.
+ * 2. Election must be active and inside its voting time window.
+ * 3. Candidate must belong to the selected election.
+ * 4. One student can vote only once per election.
+ *
+ * Data integrity is also protected using a database unique constraint
+ * on user_id and election_id to prevent duplicate voting.
+ */
+
+
     @Transactional
     public Vote castVote(Vote vote) {
         if (vote.getUser() == null || vote.getUser().getId() == null) {
@@ -162,9 +176,7 @@ public class VoteService {
         return winner;
     }
 
-    /**
-     * Demo-friendly stats: includes candidates with 0 votes (so the dashboard always looks complete).
-     */
+  
     public List<CandidateVoteStats> getElectionVoteStats(Long electionId) {
         List<Candidate> candidates = candidateService.getCandidatesByElectionId(electionId);
         Map<Long, CandidateVoteStats> statsByCandidateId = new HashMap<>();
