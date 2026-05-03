@@ -1,69 +1,83 @@
 # University Online Election Voting System
 
-Spring Boot + Thymeleaf + MySQL project for conducting a university election with secure login, role-based access, candidate management, voting, and real-time results.
+A secure web-based election platform developed using **Spring Boot**, **Thymeleaf**, and **MySQL**. This system enables universities to conduct elections with role-based access control, secure voting, candidate management, and automated result processing.
 
-## 1) Problem Understanding (What Problem This Solves)
+## Project Overview
 
-Universities need a controlled way to run elections where:
-- Only authenticated users can access the system.
-- Admin can create/manage elections and candidates.
-- Students can cast **exactly one vote per election**.
-- Voting should be controlled by admin enable/disable and by start/end time.
-- Results and winner are calculated automatically.
-- Important actions can be audited (activity logs).
+This system provides a controlled and transparent environment for conducting university elections. It ensures that only authorized users can participate, enforces voting rules, and maintains data integrity throughout the process.
 
-## 2) System Design (Layered Architecture)
+## Problem Statement
 
-This project follows a beginner-friendly layered design:
+Traditional election processes in universities lack proper control, transparency, and security. This system addresses the following challenges:
 
-`Controller → Service → Repository → Entity`
+- Ensuring only authenticated users can access the system
+- Allowing students to vote only once per election
+- Providing administrative control over elections and candidates
+- Enforcing voting availability based on time and status
+- Automatically calculating results and determining winners
+- Maintaining logs of important system activities
 
-- **Controllers**: handle HTTP requests/routes and view navigation.
-- **Services**: contain business rules (voting rules, validation, winner calculation).
-- **Repositories**: database queries via Spring Data JPA.
-- **Entities**: database table mappings (JPA).
+## System Architecture
 
-Design goal: **No business logic inside controllers** (controllers stay thin).
+The application follows a layered architecture:
 
-## 3) Modules
+`Controller -> Service -> Repository -> Entity`
+
+- Controllers handle HTTP requests and routing
+- Services contain business logic and validation
+- Repositories manage database operations using JPA
+- Entities represent database tables
+
+This design ensures separation of concerns and maintainability.
+
+## Modules
 
 ### User Module
-- Registration (students)
-- Login (Spring Security)
-- Roles: `ADMIN`, `STUDENT`
-- Password hashing: BCrypt
+
+- Student registration
+- Login using Spring Security
+- Role-based access control (ADMIN, STUDENT)
+- Password encryption using BCrypt
 
 ### Election Module
-- Admin can create/update elections
-- Active/inactive toggle
-- Time window: startDate/endDate used to open/close voting
+
+- Create and update elections
+- Activate or deactivate elections
+- Control voting using start and end dates
 
 ### Candidate Module
-- Admin can add/update/delete candidates
-- Candidate visibility: active/inactive (hide from students)
-- Optional profile image upload
+
+- Add, update, and remove candidates
+- Manage candidate visibility
+- Associate candidates with elections
 
 ### Voting Module
-- Students cast a vote for a candidate in a specific election
-- Business rules:
-  - Only STUDENT can vote (ADMIN cannot vote)
-  - Election must be enabled (active=true)
-  - Election must be within time window (start/end)
-  - Candidate must belong to the selected election
-  - Candidate must be active/visible
-  - One-student-one-vote per election (enforced in service + DB)
+
+The system enforces strict voting rules:
+
+- Only students are allowed to vote
+- Election must be active
+- Voting must be within the allowed time window
+- Candidate must belong to the selected election
+- Candidate must be active
+- One student can vote only once per election
 
 ### Result Module
+
 - Automatic vote counting
-- Winner calculation (and tie detection for demo output)
+- Winner calculation
+- Basic tie handling
 
 ### Activity Log Module
-- Logs important actions (create/update/delete election/candidate, cast vote)
-- Stored in DB table `activity_logs` and also printed in app logs
 
-## 4) Database Handling (Tables + Relationships)
+- Logs administrative actions
+- Stores logs in database
+- Supports system auditing
+
+## Database Design
 
 ### Tables
+
 - `users`
 - `elections`
 - `candidates`
@@ -71,110 +85,143 @@ Design goal: **No business logic inside controllers** (controllers stay thin).
 - `activity_logs`
 
 ### Relationships
-- `Candidate` → Many-to-One → `Election` (`candidates.election_id`)
-- `Vote` → Many-to-One → `User` (`votes.user_id`)
-- `Vote` → Many-to-One → `Candidate` (`votes.candidate_id`)
-- `Vote` → Many-to-One → `Election` (`votes.election_id`)
-- `ActivityLog` → Many-to-One (optional) → `User` (`activity_logs.user_id`)
 
-### Reliability Rules (Important for Viva)
-- **One-student-one-vote (DB enforced)**:
-  - Unique constraint: `votes(user_id, election_id)`
-  - This prevents race conditions (two requests at the same time).
+- Candidate -> Election (Many-to-One)
+- Vote -> User (Many-to-One)
+- Vote -> Candidate (Many-to-One)
+- Vote -> Election (Many-to-One)
 
-## 5) Security (Spring Security)
+### Data Integrity
 
-Public routes:
-- `GET /login`
-- `GET /register`
-- `POST /register`
+A unique constraint is applied:
 
-Role-based routes:
-- Admin pages and admin APIs require `ADMIN`
-- Student pages (vote dashboard/results) require `STUDENT`
-- Students cannot access admin pages
+`UNIQUE(user_id, election_id)`
 
-Password security:
-- Passwords are stored as **BCrypt hash** (never plain text).
+This ensures that each student can vote only once per election and prevents duplicate voting.
 
-## 6) REST APIs (for rubric)
+## Security Implementation
 
-Main voting endpoint:
-- `POST /votes/cast` (STUDENT only)
+The system uses Spring Security for authentication and authorization.
+
+Key features:
+
+- Role-based access control
+- Secure password storage using BCrypt
+- Restricted access to admin endpoints
+- Students cannot access admin functionality
+
+## REST APIs
+
+Voting:
+
+- `POST /votes/cast`
 
 Results:
-- `GET /votes/results/{electionId}` (ADMIN and STUDENT)
 
-Candidate APIs (admin-only by security config; also used by pages):
+- `GET /votes/results/{electionId}`
+
+Candidates:
+
 - `GET /candidates/all`
 - `GET /candidates/{id}`
-- `GET /candidates/election/{electionId}`
-- `POST /candidates/add` (JSON API version)
+- `POST /candidates/add`
 
-Election APIs (admin-only by security config):
-- `POST /elections/**`, `PUT /elections/**`, `DELETE /elections/**`
+Elections:
 
-Note: This project intentionally keeps both **Thymeleaf pages** and some **JSON endpoints** for evaluation/demo purposes.
+- `POST /elections/**`
+- `PUT /elections/**`
+- `DELETE /elections/**`
 
-## 7) Testing
+## Testing
 
-Location: `src/test/java/...`
+The project includes test cases for:
 
-Included tests (examples):
-- Duplicate vote restriction (student can vote only once per election)
-- Winner/result counting
-- Election rules: inactive election blocks voting
-- Election rules: not-started election blocks voting
-- Election rules: ended election blocks voting
-- Role-based access: student cannot open admin dashboard
-- Security rule: admin cannot vote (service-level)
+- Duplicate vote prevention
+- Election status validation
+- Time-based voting restrictions
+- Role-based access control
 
 Run tests:
+
 ```bash
 ./mvnw test
 ```
 
-## 8) Documentation + Diagrams (Rubric Requirement)
+## Design Patterns
 
-Diagrams you should include in your final report/slides:
-- Use Case Diagram
-- ER Diagram
-- Class Diagram
-- Sequence Diagram (casting vote flow)
-- Activity Diagram (voting lifecycle)
+- Model-View-Controller (MVC)
+- Repository Pattern
+- Service Layer Pattern
+- Dependency Injection
 
-Suggested sequence diagram flow (vote):
-1. Student submits vote
-2. Controller calls VoteService.castVote
-3. VoteService checks election open, candidate valid, already voted
-4. VoteRepository saves vote
-5. Results calculated from vote counts
+## SOLID Principles
 
-## 9) Design Patterns Used (Easy Viva Points)
+The system follows key SOLID principles:
 
-- **Dependency Injection** (Spring): controllers/services/repositories injected via constructors.
-- **Repository Pattern**: Spring Data JPA repositories.
-- **Service Layer Pattern**: all business rules implemented in services.
-- **MVC Pattern**: Thymeleaf views + controllers.
+- Single Responsibility Principle: Each class has a single responsibility
+- Open/Closed Principle: System is extendable without modifying existing code
+- Liskov Substitution Principle: Interfaces are properly implemented
+- Interface Segregation Principle: Focused interfaces are used
+- Dependency Inversion Principle: Dependencies are injected using Spring
 
-## 10) Innovation / Extra Features
+## Additional Features
 
-Implemented features aligned with rubric:
 - Automatic vote counting
-- Winner calculation (+ tie detection)
-- One-student-one-vote restriction (service + DB constraint)
-- Active/inactive election toggle
-- Time-controlled voting (start/end)
-- Activity logging (DB + application logs)
+- Winner detection
+- Activity logging
+- Time-controlled voting
+- Role-based dashboards
 
-## Presentation & Demo Flow (Recommended)
+## How to Run the Project
 
-1. Admin login
-2. Create election (set start/end time)
-3. Activate election
-4. Add candidates (with optional images)
-5. Student registration → student login
-6. Student opens voting page → casts vote
-7. Student tries to vote again → blocked with error
-8. Open results page → show counts + winner
+Clone the repository:
+
+```bash
+git clone <repository-link>
+```
+
+Navigate to the project folder:
+
+```bash
+cd voting-system
+```
+
+Run the application:
+
+```bash
+./mvnw spring-boot:run
+```
+
+Open in browser:
+
+`http://localhost:8080`
+
+## Demonstration Flow
+
+1. Admin logs in
+2. Admin creates an election
+3. Admin adds candidates
+4. Admin activates the election
+5. Student registers and logs in
+6. Student casts a vote
+7. System prevents duplicate voting
+8. Results are displayed automatically
+
+## Team Contribution
+
+- Backend Development: Spring Boot APIs, database design, security implementation
+- Frontend Development: User interface, pages, and user interaction
+
+## Technologies Used
+
+- Java 17
+- Spring Boot
+- Spring Security
+- Thymeleaf
+- MySQL
+- Maven
+
+## License
+
+This project is developed for academic purposes.
 
