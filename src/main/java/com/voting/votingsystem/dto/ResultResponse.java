@@ -5,10 +5,8 @@ public class ResultResponse {
     private Long candidateId;
     private String candidateName;
     private Long totalVotes;
-    /**
-     * Web path stored for the candidate image, usually like "/images/abc.png".
-     * May be null/blank if no image exists.
-     */
+  
+    
     private String candidateImage;
 
     public ResultResponse() {
