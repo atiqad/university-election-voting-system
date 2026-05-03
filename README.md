@@ -222,6 +222,9 @@ Open in browser:
 - MySQL
 - Maven
 
+## Diagrams
+All system diagrams are available in the /docs/diagrams folder.
+
 ## License
 
 This project is developed for academic purposes.
