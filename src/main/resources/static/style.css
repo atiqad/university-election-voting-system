@@ -1,0 +1,3 @@
+/* Backward compatibility: some pages/projects might reference /style.css.
+   The actual shared stylesheet lives at /css/style.css. */
+@import url("/css/style.css");

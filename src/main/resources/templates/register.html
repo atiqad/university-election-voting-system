@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - University Online Election Voting System</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/login">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Secure campus election platform</div>
+            </div>
+        </a>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container container--narrow">
+        <section class="card">
+            <div class="card__header">
+                <div>
+                    <h1 class="title">Student Registration</h1>
+                    <p class="subtitle">Create your account to participate in elections</p>
+                </div>
+            </div>
+
+            <div th:if="${successMessage}" class="alert success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></div>
+
+            <form th:action="@{/register}" method="post" class="form-box" id="registerForm" novalidate>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="fullName" placeholder="Enter full name" required>
+                <div class="error-text u-hidden" id="fullNameError" aria-live="polite"></div>
+
+                <label for="regNo">Registration Number</label>
+                <input type="text" id="regNo" name="regNo" placeholder="Enter registration number" required>
+                <div class="error-text u-hidden" id="regNoError" aria-live="polite"></div>
+
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter email" required>
+                <div class="error-text u-hidden" id="emailError" aria-live="polite"></div>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter password" minlength="6" required>
+                <div class="error-text u-hidden" id="passwordError" aria-live="polite"></div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </div>
+            </form>
+
+            <p class="footer-text">
+                Already have an account?
+                <a class="link" href="/login">Login here</a>
+            </p>
+        </section>
+    </div>
+</main>
+
+<script>
+    (function () {
+        var form = document.getElementById('registerForm');
+        var fullName = document.getElementById('fullName');
+        var regNo = document.getElementById('regNo');
+        var email = document.getElementById('email');
+        var password = document.getElementById('password');
+
+        function setError(input, errEl, message) {
+            if (!input || !errEl) return;
+            if (message) {
+                input.classList.add('input-error');
+                errEl.textContent = message;
+                errEl.classList.remove('u-hidden');
+            } else {
+                input.classList.remove('input-error');
+                errEl.textContent = '';
+                errEl.classList.add('u-hidden');
+            }
+        }
+
+        function validate() {
+            var ok = true;
+
+            var nameVal = String(fullName && fullName.value ? fullName.value : '').trim();
+            if (!nameVal) {
+                setError(fullName, document.getElementById('fullNameError'), 'Full name is required');
+                ok = false;
+            } else {
+                setError(fullName, document.getElementById('fullNameError'), '');
+            }
+
+            var regVal = String(regNo && regNo.value ? regNo.value : '').trim();
+            if (!regVal) {
+                setError(regNo, document.getElementById('regNoError'), 'Registration number is required');
+                ok = false;
+            } else {
+                setError(regNo, document.getElementById('regNoError'), '');
+            }
+
+            var emailVal = String(email && email.value ? email.value : '').trim();
+            if (!emailVal) {
+                setError(email, document.getElementById('emailError'), 'Email is required');
+                ok = false;
+            } else if (typeof email.checkValidity === 'function' && !email.checkValidity()) {
+                setError(email, document.getElementById('emailError'), 'Enter a valid email address');
+                ok = false;
+            } else {
+                setError(email, document.getElementById('emailError'), '');
+            }
+
+            var passVal = String(password && password.value ? password.value : '');
+            if (!passVal) {
+                setError(password, document.getElementById('passwordError'), 'Password is required');
+                ok = false;
+            } else if (passVal.length < 6) {
+                setError(password, document.getElementById('passwordError'), 'Password must be at least 6 characters');
+                ok = false;
+            } else {
+                setError(password, document.getElementById('passwordError'), '');
+            }
+
+            return ok;
+        }
+
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                if (!validate()) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        [fullName, regNo, email, password].forEach(function (el) {
+            if (!el) return;
+            el.addEventListener('input', validate);
+            el.addEventListener('blur', validate);
+        });
+    })();
+</script>
+
+</body>
+</html>

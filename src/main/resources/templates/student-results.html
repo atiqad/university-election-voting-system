@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Election Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/student-dashboard">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Secure campus election platform</div>
+            </div>
+        </a>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container">
+        <section class="card results">
+            <div class="card__header">
+                <div>
+                    <h1 class="title">Election Results</h1>
+                    <p class="subtitle">View results by election and see the current leader.</p>
+                </div>
+            </div>
+
+            <form method="get" action="/student-results-page" class="form-box results__filter">
+                <label for="electionId">Select Election</label>
+                <select id="electionId" name="electionId" required>
+                    <option th:each="e : ${elections}"
+                            th:value="${e.id}"
+                            th:text="${e.title}"
+                            th:selected="${election != null && e.id == election.id}">
+                    </option>
+                </select>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">View</button>
+                </div>
+            </form>
+
+            <div th:if="${election == null}">
+                <div class="empty-note">No elections found yet.</div>
+            </div>
+
+            <div th:if="${election != null}">
+                <div class="results__meta">
+                    Election: <span class="results__metaTitle" th:text="${election.title}"></span>
+                </div>
+
+                <div th:if="${winner != null}">
+                    <div class="section-head">
+                        <h2 class="section-title">Winner</h2>
+                        <div class="section-subtitle">Current top result for this election.</div>
+                    </div>
+
+                    <section class="winner-card" aria-label="Winner">
+                        <div class="winner-card__badge" aria-label="Winner badge">
+                            <span aria-hidden="true">🏆</span>
+                            Winner
+                        </div>
+                        <div class="winner-card__photo" aria-hidden="true">
+                            <img th:src="${(winner.candidateImage != null and !#strings.isEmpty(winner.candidateImage)) ?
+                                    (#strings.startsWith(winner.candidateImage, '/') ? winner.candidateImage : '/images/' + winner.candidateImage)
+                                    : '/images/University-logo.png'}"
+                                 alt=""
+                                 loading="lazy">
+                        </div>
+                        <div class="winner-card__name" th:text="${winner.candidateName}">Winner Name</div>
+                        <div class="winner-card__votes">
+                            <span class="winner-card__votesNum" th:text="${winner.totalVotes}">0</span>
+                            <span class="winner-card__votesLabel"
+                                  th:text="${winner.totalVotes == 1 ? 'Vote' : 'Votes'}">Votes</span>
+                        </div>
+                    </section>
+                </div>
+
+                <div th:if="${winner == null}">
+                    <div class="empty-note">No votes have been cast for this election yet.</div>
+                </div>
+
+                <div class="section-divider" aria-hidden="true"></div>
+
+                <div class="section-head">
+                    <h2 class="section-title">Candidates</h2>
+                    <div class="section-subtitle">Votes by candidate.</div>
+                </div>
+
+                <div class="result-grid" aria-label="Results list">
+                    <article class="result-card"
+                             th:each="result : ${results}"
+                             th:classappend="${winner != null && winner.candidateName == result.candidateName} ? ' result-card--winner' : ''">
+                        <div class="result-card__photo" aria-hidden="true">
+                            <img th:src="${(result.candidateImage != null and !#strings.isEmpty(result.candidateImage)) ?
+                                    (#strings.startsWith(result.candidateImage, '/') ? result.candidateImage : '/images/' + result.candidateImage)
+                                    : '/images/University-logo.png'}"
+                                 alt=""
+                                 loading="lazy">
+                        </div>
+                        <div class="result-card__body">
+                            <div class="result-card__name" th:text="${result.candidateName}">Candidate</div>
+                            <div class="result-card__votes">
+                                <span class="result-card__votesNum" th:text="${result.totalVotes}">0</span>
+                                <span class="result-card__votesLabel"
+                                      th:text="${result.totalVotes == 1 ? 'Vote' : 'Votes'}">Votes</span>
+                            </div>
+                        </div>
+                        <div class="result-card__tag" th:if="${winner != null && winner.candidateName == result.candidateName}">
+                            <span aria-hidden="true">🏆</span> Winner
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div class="mt-16">
+                <a href="/student-dashboard" class="btn btn-ghost back-link">Back</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>

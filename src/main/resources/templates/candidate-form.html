@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${mode == 'edit' ? 'Edit Candidate' : 'Add Candidate'}">Candidate</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/admin-dashboard">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Secure campus election platform</div>
+            </div>
+        </a>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container container--medium">
+        <section class="card">
+            <div class="card__header">
+                <div>
+                    <h1 class="title" th:text="${mode == 'edit' ? 'Edit Candidate' : 'Add Candidate'}">Add Candidate</h1>
+                    <p class="subtitle">Enter candidate biodata and upload a profile photo</p>
+                </div>
+            </div>
+
+            <div th:if="${successMessage}" class="alert success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></div>
+
+            <form th:action="${mode == 'edit' ? '/candidates/update/' + candidate.id : '/candidates/add'}"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="form-box">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="profileImage" th:value="${candidate.profileImage}">
+
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text" placeholder="Enter candidate name" required
+                       th:value="${candidate.name}">
+
+                <label for="department">Department</label>
+                <input id="department" name="department" type="text" placeholder="e.g. Computer Science"
+                       th:value="${candidate.department}">
+
+                <label for="programName">Program Name</label>
+                <input id="programName" name="programName" type="text" placeholder="e.g. BS Software Engineering"
+                       th:value="${candidate.programName}">
+
+                <label for="contactNumber">Contact Number</label>
+                <input id="contactNumber" name="contactNumber" type="text" placeholder="e.g. +92 3xx xxxxxxx"
+                       th:value="${candidate.contactNumber}">
+
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" placeholder="candidate@example.com"
+                       th:value="${candidate.email}">
+
+                <label for="position">Position</label>
+                <input id="position" name="position" type="text" placeholder="e.g. President"
+                       th:value="${candidate.position}">
+
+                <label class="mt-8" for="active">Visible For Voting</label>
+                <div class="field-row" style="margin: 6px 0 8px;">
+                    <label style="display:flex; align-items:center; gap:10px; font-weight: 750;">
+                        <input id="active" name="active" type="checkbox" th:checked="${candidate.active}">
+                        Active (students can see and vote)
+                    </label>
+                </div>
+
+                <label for="electionId">Election</label>
+                <select id="electionId" name="electionId" required>
+                    <option value="" disabled selected>Select election</option>
+                    <option th:each="e : ${elections}"
+                            th:value="${e.id}"
+                            th:text="${e.title}"
+                            th:selected="${candidate.election != null && e.id == candidate.election.id}">
+                    </option>
+                </select>
+
+                <label for="bio">Bio</label>
+                <textarea id="bio" name="bio" rows="5" placeholder="Write a short bio (goals, experience, etc.)"
+                          th:text="${candidate.bio}"></textarea>
+
+                <label for="image">Profile Picture</label>
+                <input id="image" name="image" type="file" accept="image/*">
+                <div th:if="${candidate.profileImage != null}" class="mt-8">
+                    <p class="subtitle">Current image:</p>
+                    <img th:src="@{${candidate.profileImage}}" alt="Candidate photo" style="max-width: 160px; border-radius: 12px;">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" th:text="${mode == 'edit' ? 'Update Candidate' : 'Save Candidate'}"></button>
+                    <a class="btn btn-ghost" href="/candidates-page">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${mode == 'edit' ? 'Edit Election' : 'Create Election'}">Election</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/admin-dashboard">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Election scheduling</div>
+            </div>
+        </a>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container container--medium">
+        <section class="card">
+                <div class="card__header">
+                    <div>
+                        <h1 class="title" th:text="${mode == 'edit' ? 'Edit Election' : 'Create Election'}"></h1>
+                        <p class="subtitle">Set a start and end time to control voting automatically</p>
+                        <p class="hint" th:if="${serverNow != null}">
+                            Server time: <span th:text="${serverNow}"></span> (<span th:text="${serverZone}"></span>).
+                            Use 24-hour time (22:30 = 10:30 PM).
+                        </p>
+                    </div>
+                </div>
+
+            <div th:if="${successMessage}" class="alert success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></div>
+
+            <form th:action="${formAction}"
+                  method="post"
+                  class="form-box">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <label for="title">Title</label>
+                <input id="title" name="title" type="text" required
+                       placeholder="e.g. Student Council Election 2026"
+                       th:value="${election.title}">
+
+                <label for="startDate">Start Date</label>
+                <input id="startDate" name="startDate" type="datetime-local"
+                       th:value="${startDateValue}">
+                <div class="hint" id="startDatePreview" aria-live="polite"></div>
+
+                <label for="endDate">End Date</label>
+                <input id="endDate" name="endDate" type="datetime-local"
+                       th:value="${endDateValue}">
+                <div class="hint" id="endDatePreview" aria-live="polite"></div>
+
+                <label class="mt-8" for="active">
+                    <input id="active" name="active" type="checkbox" value="true" th:checked="${election.active}">
+                    Active (allows voting in the time window)
+                </label>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" th:text="${mode == 'edit' ? 'Update' : 'Create'}"></button>
+                    <a class="btn btn-ghost" href="/admin/elections">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+
+<script>
+    (function () {
+        function to12Hour(value) {
+            if (!value) return "";
+            // value looks like: "2026-04-30T22:30" or "2026-04-30T22:30:00"
+            // Parse manually to avoid browser Date timezone quirks.
+            var parts = value.split("T");
+            if (parts.length !== 2) return "";
+            var datePart = parts[0];
+            var timePart = parts[1];
+            var t = timePart.split(":");
+            if (t.length < 2) return "";
+            var hours = parseInt(t[0], 10);
+            var minutes = String(parseInt(t[1], 10)).padStart(2, "0");
+            if (isNaN(hours) || isNaN(parseInt(t[1], 10))) return "";
+            var ampm = hours >= 12 ? "PM" : "AM";
+            var h12 = hours % 12;
+            if (h12 === 0) h12 = 12;
+            return datePart + " " + String(h12).padStart(2, "0") + ":" + minutes + " " + ampm;
+        }
+
+        function wire(inputId, previewId, label) {
+            var input = document.getElementById(inputId);
+            var preview = document.getElementById(previewId);
+            if (!input || !preview) return;
+            function update() {
+                var formatted = to12Hour(input.value);
+                preview.textContent = formatted ? (label + ": " + formatted) : "";
+            }
+            input.addEventListener("input", update);
+            update();
+        }
+
+        wire("startDate", "startDatePreview", "Start (12h)");
+        wire("endDate", "endDatePreview", "End (12h)");
+    })();
+</script>
+
+</body>
+</html>

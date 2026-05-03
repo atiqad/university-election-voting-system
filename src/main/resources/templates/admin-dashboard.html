@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - UOEVS</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="page--admin-dashboard">
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/admin-dashboard">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Secure campus election platform</div>
+            </div>
+        </a>
+        <nav class="nav" aria-label="Primary">
+            <div class="nav__links">
+                <a class="nav__link" href="/admin/elections">Elections</a>
+                <a class="nav__link" href="/candidates-page">Candidates</a>
+                <a class="nav__link" href="/admin/results">Results</a>
+            </div>
+            <div class="nav__actions">
+                <form th:action="@{/logout}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger btn--sm">Logout</button>
+                </form>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container container--wide">
+        <div class="admin-shell" aria-label="Admin dashboard">
+            <section class="admin-hero" aria-label="Header">
+                <div class="admin-hero__bar">
+                    <div class="admin-hero__kicker">Administration</div>
+                    <div class="admin-hero__status" aria-label="System status">
+                        <span class="status-dot status-dot--online" aria-hidden="true"></span>
+                        <span class="admin-hero__statusText">System Online</span>
+                    </div>
+                </div>
+                <h1 class="admin-hero__title">Admin Control Center</h1>
+                <p class="admin-hero__subtitle">Monitor elections, candidates, votes, and system activity.</p>
+            </section>
+
+            <div class="admin-grid" aria-label="Dashboard content">
+                <section class="admin-main" aria-label="Main content">
+                    <div class="admin-sectionHead">
+                        <div class="admin-sectionHead__title">System Summary</div>
+                        <div class="admin-sectionHead__subtitle">
+                            Key metrics for election management
+                            <small class="live-text">Updated just now</small>
+                        </div>
+                    </div>
+
+                    <div class="metrics-strip" aria-label="Admin summary metrics">
+                        <div class="metric-box">
+                            <span class="metric-value metric-normal" th:text="${totalElections}">0</span>
+                            <small class="metric-label">Total Elections</small>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-value metric-active" th:text="${activeElections}">0</span>
+                            <small class="metric-label">Active Elections</small>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-value metric-normal" th:text="${totalCandidates}">0</span>
+                            <small class="metric-label">Total Candidates</small>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-value metric-votes" th:text="${totalVotes}">0</span>
+                            <small class="metric-label">Votes Cast</small>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-value metric-normal" th:text="${registeredStudents}">0</span>
+                            <small class="metric-label">Registered Students</small>
+                        </div>
+                    </div>
+
+                    <div class="admin-sectionHead" style="margin-top: 16px;">
+                        <div class="admin-sectionHead__title">Quick Management Actions</div>
+                        <div class="admin-sectionHead__subtitle">Open tools commonly used for administration</div>
+                    </div>
+
+                    <div class="admin-actionRows" aria-label="Actions">
+                        <div class="admin-actionRow admin-actionRow--elections">
+                            <div class="admin-actionRow__body">
+                                <div class="admin-actionRow__title">Manage Elections</div>
+                                <div class="admin-actionRow__desc">Create and schedule election windows.</div>
+                            </div>
+                            <div class="admin-actionRow__cta">
+                                <a class="btn btn-primary btn--sm" href="/admin/elections">Open</a>
+                            </div>
+                        </div>
+
+                        <div class="admin-actionRow admin-actionRow--candidates">
+                            <div class="admin-actionRow__body">
+                                <div class="admin-actionRow__title">Manage Candidates</div>
+                                <div class="admin-actionRow__desc">Maintain candidate profiles and visibility.</div>
+                            </div>
+                            <div class="admin-actionRow__cta">
+                                <a class="btn btn-outline btn--sm" href="/candidates-page">Open</a>
+                            </div>
+                        </div>
+
+                        <div class="admin-actionRow admin-actionRow--results">
+                            <div class="admin-actionRow__body">
+                                <div class="admin-actionRow__title">View Results</div>
+                                <div class="admin-actionRow__desc">Review vote counts and winners.</div>
+                            </div>
+                            <div class="admin-actionRow__cta">
+                                <a class="btn btn-outline btn--sm" href="/admin/results">Open</a>
+                            </div>
+                        </div>
+
+                        <div class="admin-actionRow admin-actionRow--logs" id="activity-logs">
+                            <div class="admin-actionRow__body">
+                                <div class="admin-actionRow__title">Activity Logs</div>
+                                <div class="admin-actionRow__desc">Track administrative activity.</div>
+                            </div>
+                            <div class="admin-actionRow__cta">
+                                <a class="btn btn-outline btn--sm" href="/admin/activity-logs">Open</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="admin-profile" aria-label="Admin profile">
+                    <div class="admin-profile__top">
+                        <div class="admin-profile__avatar" aria-hidden="true"
+                             th:text="${adminName != null and #strings.length(adminName) > 0 ? #strings.toUpperCase(#strings.substring(adminName,0,1)) : 'A'}">A</div>
+                        <div class="admin-profile__identity">
+                            <div class="admin-profile__name"
+                                 th:text="${adminName != null ? adminName : 'Administrator'}">Administrator</div>
+                            <div class="admin-profile__role">Administrator</div>
+                        </div>
+                    </div>
+
+                    <dl class="admin-profile__meta">
+                        <div class="admin-profile__item">
+                            <dt>Role</dt>
+                            <dd>System Admin</dd>
+                        </div>
+                        <div class="admin-profile__item">
+                            <dt>Access</dt>
+                            <dd>Full Control</dd>
+                        </div>
+                        <div class="admin-profile__item">
+                            <dt>Status</dt>
+                            <dd><span class="status-dot status-dot--online" aria-hidden="true"></span>Online</dd>
+                        </div>
+                        <div class="admin-profile__item">
+                            <dt>Last Login</dt>
+                            <dd>Today</dd>
+                        </div>
+                    </dl>
+
+                    <div class="admin-profile__note">
+                        Use the tools on the left to manage elections, candidates, and result publication.
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="app-footer" aria-label="Footer">
+    <div class="container container--wide">
+        <div class="app-footer__inner">© 2026 PAF-IAST Election Voting System | Admin Panel</div>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - UOEVS</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="page--student-dashboard">
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/student-dashboard">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Secure campus election platform</div>
+            </div>
+        </a>
+        <nav class="nav" aria-label="Primary">
+            <div class="nav__links">
+                <a class="nav__link" href="/elections-page">Elections</a>
+                <a class="nav__link" href="/vote-page">Vote</a>
+                <a class="nav__link" href="/student-results-page">Results</a>
+            </div>
+            <div class="nav__actions">
+                <form th:action="@{/logout}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger btn--sm">Logout</button>
+                </form>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container container--wide">
+        <div class="dashboard-shell" aria-label="Dashboard content">
+            <section class="portal-hero" aria-label="Portal header">
+                <div class="portal-hero__top">
+                    <div class="portal-hero__badge">Student Voting Portal</div>
+                    <div class="portal-hero__rightBadge" aria-label="Security notice">Secure Voting Access</div>
+                </div>
+                <h1 class="portal-hero__title">
+                    Welcome back, <span th:text="${studentName}">Student</span>
+                </h1>
+                <p class="portal-hero__subtitle">Review available elections and submit your vote securely.</p>
+            </section>
+
+            <div class="dash-grid" aria-label="Student dashboard">
+                <section class="dash-main" aria-label="Dashboard main">
+                    <div class="summary-strip" aria-label="Election summary">
+                        <div class="summary-strip__item">
+                            Active elections:
+                            <strong th:text="${activeElections != null ? activeElections : 0}">0</strong>
+                        </div>
+                        <div class="summary-strip__item">
+                            Total elections:
+                            <strong th:text="${totalElections != null ? totalElections : 0}">0</strong>
+                        </div>
+                        <div class="summary-strip__item">
+                            Votes cast:
+                            <strong th:text="${votesCount != null ? votesCount : 0}">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="task-list" aria-label="Tasks">
+                        <div class="task-row">
+                            <div class="task-row__text">
+                                <div class="task-row__title">View Elections</div>
+                                <div class="task-row__desc">Check current and upcoming elections.</div>
+                            </div>
+                            <div class="task-row__actions">
+                                <a class="btn btn-primary btn--sm" href="/elections-page">Open</a>
+                            </div>
+                        </div>
+
+                        <div class="task-row task-row--vote">
+                            <div class="task-row__text">
+                                <div class="task-row__title">Cast Vote</div>
+                                <div class="task-row__desc">Submit your vote for an active election.</div>
+                            </div>
+                            <div class="task-row__actions">
+                                <a class="btn btn-success btn--sm" href="/vote-page">Vote</a>
+                            </div>
+                        </div>
+
+                        <div class="task-row task-row--results">
+                            <div class="task-row__text">
+                                <div class="task-row__title">View Results</div>
+                                <div class="task-row__desc">See published election results.</div>
+                            </div>
+                            <div class="task-row__actions">
+                                <a class="btn btn-outline btn--sm" href="/student-results-page">Results</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="empty-note" th:if="${totalElections != null and totalElections == 0}">
+                        No elections are available right now. Please check back later.
+                    </div>
+                </section>
+
+                <aside class="account-panel" aria-label="Account summary">
+                    <div class="account-panel__header">
+                        <div class="account-identity">
+                            <div class="account-avatar" aria-hidden="true"
+                                 th:text="${studentName != null and #strings.length(studentName) > 0 ? #strings.toUpperCase(#strings.substring(studentName,0,1)) : 'S'}">S</div>
+                            <div class="account-identity__text">
+                                <div class="account-panel__name" th:text="${studentName}">Student</div>
+                                <div class="account-panel__meta">Role: Student</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <dl class="account-panel__list">
+                        <div class="account-panel__item">
+                            <dt>Votes Cast</dt>
+                            <dd th:text="${votesCount != null ? votesCount : 0}">0</dd>
+                        </div>
+                        <div class="account-panel__item">
+                            <dt>Active Elections</dt>
+                            <dd th:text="${activeElections != null ? activeElections : 0}">0</dd>
+                        </div>
+                    </dl>
+
+                    <div class="account-callout" th:if="${activeElections > 0}">
+                        <div class="account-callout__label">Active election</div>
+                        <div class="account-callout__row">
+                            <div class="account-callout__name" th:text="${activeElectionTitle}">Election Name</div>
+                            <span class="status-badge"
+                                  th:classappend="${activeElectionStatus == 'Open' ? ' status-badge--open' : ' status-badge--completed'}"
+                                  th:text="${activeElectionStatus}">Open</span>
+                        </div>
+                        <a class="account-callout__link" th:href="@{/vote-page(electionId=${activeElectionId})}">Open voting</a>
+                    </div>
+
+                    <div class="account-panel__footnote" th:if="${votesCount != null and votesCount == 0}">
+                        You have not submitted any votes yet.
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="app-footer" aria-label="Footer">
+    <div class="container container--wide">
+        <div class="app-footer__inner">© 2026 PAF-IAST Election Voting System</div>
+    </div>
+</footer>
+
+</body>
+</html>

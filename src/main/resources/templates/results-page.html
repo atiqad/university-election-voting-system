@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Election Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/login">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Secure campus election platform</div>
+            </div>
+        </a>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container">
+        <section class="card">
+            <div class="card__header">
+                <div>
+                    <h1 class="title">Election Results</h1>
+                    <p class="subtitle">Current voting summary</p>
+                </div>
+            </div>
+
+            <div th:if="${winner != null}">
+                <h2 class="mt-8">Winner</h2>
+                <p class="subtitle">
+                    <strong th:text="${winner.candidateName}"></strong>
+                    with
+                    <strong th:text="${winner.totalVotes}"></strong>
+                    votes
+                </p>
+            </div>
+
+            <div th:if="${winner == null}">
+                <p class="subtitle">No votes found yet.</p>
+            </div>
+
+            <div class="mt-16"></div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th class="center">Total Votes</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="result : ${results}">
+                    <td th:text="${result.candidateName}"></td>
+                    <td class="center" th:text="${result.totalVotes}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="mt-16">
+                <a href="/student-dashboard" class="btn btn-ghost back-link">Back</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>

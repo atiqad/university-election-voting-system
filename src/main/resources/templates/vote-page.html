@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cast Vote</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/login">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Secure campus election platform</div>
+            </div>
+        </a>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container">
+        <section class="card">
+                <div class="card__header">
+                    <div>
+                        <div class="page-titleRow">
+                            <h1 class="title">Cast Your Vote</h1>
+                            <span th:if="${election != null and election.active}" class="status-badge status-badge--open page-titleRow__badge">Active</span>
+                            <span th:if="${election != null and !election.active}" class="status-badge status-badge--inactive page-titleRow__badge">Closed</span>
+                        </div>
+                        <p class="subtitle" th:if="${election != null}">
+                            Election: <span th:text="${election.title}"></span>
+                        </p>
+                        <p class="subtitle subtitle--meta" th:if="${election != null}">
+                            Server time: <span th:text="${serverNow}"></span>
+                            (<span th:text="${serverZone}"></span>)
+                            <span th:if="${electionStart != null || electionEnd != null}">
+                                | Window:
+                                <span th:if="${electionStart != null}" th:text="${electionStart}"></span>
+                                <span th:if="${electionStart == null}">Any time</span>
+                                to
+                                <span th:if="${electionEnd != null}" th:text="${electionEnd}"></span>
+                                <span th:if="${electionEnd == null}">No end</span>
+                            </span>
+                        </p>
+                        <p class="subtitle" th:if="${election == null}">Select one candidate for the election</p>
+                    </div>
+                </div>
+
+            <div th:if="${successMessage}" class="alert success alert-pill" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></div>
+            <div th:if="${votingBlockedReason != null and alreadyVoted != true and successMessage == null and errorMessage == null}"
+                 class="alert error"
+                 th:text="${votingBlockedReason}"></div>
+
+            <form method="get" action="/vote-page" class="form-box" style="margin-bottom: 16px;">
+                <label for="electionId">Select Election</label>
+                <select id="electionId" name="electionId" required>
+                    <option th:each="e : ${elections}"
+                            th:value="${e.id}"
+                            th:text="${e.title}"
+                            th:selected="${election != null && e.id == election.id}">
+                    </option>
+                </select>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Load Candidates</button>
+                </div>
+            </form>
+
+            <div class="section-divider" aria-hidden="true"></div>
+
+            <div class="vote-grid" aria-label="Candidates">
+                <article class="vote-card" th:each="candidate : ${candidates}">
+                    <div class="vote-card__badge">Candidate Profile</div>
+                    <div class="vote-card__head">
+                        <div class="vote-card__photo" aria-hidden="true">
+                            <img th:src="${(candidate.profileImage != null and !#strings.isEmpty(candidate.profileImage)) ?
+                                    (#strings.startsWith(candidate.profileImage, '/') ? candidate.profileImage : '/images/' + candidate.profileImage)
+                                    : '/images/University-logo.png'}"
+                                 alt=""
+                                 loading="lazy">
+                        </div>
+                        <div class="vote-card__title">
+                            <div class="vote-card__name" th:text="${candidate.name}">Candidate Name</div>
+                            <div class="vote-card__meta">
+                                <span th:text="${candidate.position}">Position</span>
+                                <span class="dot" aria-hidden="true">|</span>
+                                <span th:text="${candidate.department != null && !#strings.isEmpty(candidate.department) ? candidate.department : 'Department not set'}">Department</span>
+                            </div>
+                            <div class="vote-card__meta" th:if="${candidate.programName != null and !#strings.isEmpty(candidate.programName)}">
+                                Program: <span th:text="${candidate.programName}">Program Name</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vote-card__bio" th:if="${candidate.bio != null and !#strings.isEmpty(candidate.bio)}">
+                        <div class="vote-card__bioLabel">Bio:</div>
+                        <div class="vote-card__bioText" th:text="${candidate.bio}">Bio</div>
+                    </div>
+
+                    <div class="vote-card__actions">
+                        <form th:if="${votingBlockedReason == null and alreadyVoted != true}"
+                              th:action="@{/submit-vote}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="electionId" th:value="${selectedElectionId}">
+                            <input type="hidden" name="candidateId" th:value="${candidate.id}">
+                            <button type="submit" class="btn btn-vote btn-block">Vote</button>
+                        </form>
+                        <div th:if="${alreadyVoted == true}"
+                             class="vote-recorded status-pill status-pill--confirm">
+                            <span aria-hidden="true">✔</span>
+                            Vote Recorded Successfully
+                        </div>
+                        <button th:if="${alreadyVoted != true and votingBlockedReason != null}"
+                                type="button"
+                                class="btn btn-ghost btn-block"
+                                disabled
+                                th:text="'Voting Unavailable'">
+                        </button>
+                    </div>
+                </article>
+
+                <div class="empty-note" th:if="${#lists.isEmpty(candidates)}">
+                    No candidates found for this election.
+                </div>
+            </div>
+
+            <div class="mt-16">
+                <a href="/student-dashboard" class="btn btn-ghost back-link">Back</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>

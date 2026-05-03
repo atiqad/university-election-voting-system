@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Results Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/admin-dashboard">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Live results monitoring</div>
+            </div>
+        </a>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container">
+        <section class="card">
+            <div class="card__header">
+                <div>
+                <h1 class="title">Admin Results Dashboard <span class="live-indicator">● Live</span></h1>
+                <p class="subtitle">Votes per candidate and current winner</p>
+                </div>
+                <div class="actions">
+            <a class="btn btn-ghost btn-refresh" th:href="@{/admin/results(electionId=${election != null ? election.id : null})}">🔄 Refresh Results</a>
+                </div>
+            </div>
+
+            <form method="get" action="/admin/results" class="form-box" style="margin-bottom: 16px;">
+                <label for="electionId">Select Election</label>
+                <select id="electionId" name="electionId" required>
+                    <option th:each="e : ${elections}"
+                            th:value="${e.id}"
+                            th:text="${e.title}"
+                            th:selected="${election != null && e.id == election.id}">
+                    </option>
+                </select>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">View</button>
+                </div>
+            </form>
+
+            <div id="resultsSection">
+            <div th:if="${election == null}" class="alert error">
+                No election found. Create an election first.
+            </div>
+
+                <div th:if="${election != null}">
+                    <p class="subtitle">
+                        Election: <strong th:text="${election.title}"></strong>
+                        | Total Votes: <strong class="total-votes" th:text="${totalVotes}"></strong>
+                    </p>
+
+                    <div th:if="${totalVotes > 0 and winner != null}">
+                        <h2 class="mt-8">Current Winner</h2>
+                        <div class="winner-card" role="note" aria-label="Current winner">
+                            <img class="winner-img"
+                                 th:src="@{${(winner.candidateImage != null and !#strings.isEmpty(winner.candidateImage)) ? winner.candidateImage : '/images/default-user.png'}}"
+                                 alt="Candidate">
+
+                            <div class="winner-info">
+                                <h3><span th:text="${winner.candidateName}">Candidate Name</span></h3>
+                                <p><span th:text="${winner.totalVotes}">0</span> votes</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${totalVotes == 0}" class="results-empty">
+                        <div class="results-empty__title">No votes recorded yet</div>
+                        <div class="results-empty__subtitle">Results will appear after voting</div>
+                    </div>
+
+                    <div class="mt-16"></div>
+
+                    <table>
+                        <thead>
+                        <tr>
+                            <th class="center">Rank</th>
+                            <th>Candidate</th>
+                            <th class="center">Total Votes</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="result, iter : ${stats}" th:classappend="${iter.index == 0} ? ' winner-row' : ''">
+                            <td class="center rank-cell" th:text="${iter.index + 1}">1</td>
+                            <td>
+                                <span th:text="${result.candidateName}">Candidate Name</span>
+                            </td>
+                            <td class="center">
+                                <span th:text="${result.totalVotes}">0</span>
+                                <span class="vote-pct"
+                                      th:text="${totalVotes > 0 ? (#numbers.formatDecimal(((result.totalVotes != null ? result.totalVotes : 0) * 100.0) / totalVotes, 1, 1) + '%') : '0.0%'}">
+                                    0.0%
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+
+            <div class="mt-16">
+                <a href="/admin-dashboard" class="btn btn-ghost back-link">Back</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+    (function () {
+        var sectionId = 'resultsSection';
+        var intervalMs = 10000;
+
+        async function refreshResultsSection() {
+            try {
+                var res = await fetch(window.location.href, { cache: 'no-store' });
+                if (!res.ok) return;
+                var html = await res.text();
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var next = doc.getElementById(sectionId);
+                var cur = document.getElementById(sectionId);
+                if (next && cur) {
+                    cur.innerHTML = next.innerHTML;
+                }
+            } catch (e) {
+                // ignore; next interval retries
+            }
+        }
+
+        setInterval(refreshResultsSection, intervalMs);
+    })();
+</script>
+
+</body>
+</html>

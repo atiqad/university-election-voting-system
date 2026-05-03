@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Logs - Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="page--admin-activity-logs">
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/admin-dashboard">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Administrative activity</div>
+            </div>
+        </a>
+        <nav class="nav" aria-label="Primary">
+            <div class="nav__links">
+                <a class="nav__link" href="/admin/elections">Elections</a>
+                <a class="nav__link" href="/candidates-page">Candidates</a>
+                <a class="nav__link" href="/admin/results">Results</a>
+            </div>
+            <div class="nav__actions">
+                <form th:action="@{/logout}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger btn--sm">Logout</button>
+                </form>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container container--wide">
+        <section class="card">
+            <div class="card__header">
+                <div>
+                    <h1 class="title">Activity Logs</h1>
+                    <p class="subtitle">Latest administrative actions (newest first)</p>
+                </div>
+                <div class="actions">
+                    <a class="btn btn-ghost btn-refresh" href="/admin/activity-logs">🔄 Refresh</a>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(logs)}" class="empty-state-block">
+                <div class="empty-state-block__title">No activity logs available yet.</div>
+            </div>
+
+            <table th:if="${!#lists.isEmpty(logs)}">
+                <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Performed By</th>
+                    <th>Details</th>
+                    <th class="center">Created At</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="log : ${logs}">
+                    <td>
+                        <span th:switch="${log.action}">
+                            <span th:case="'ACTIVATE_CANDIDATE'">Candidate Activated</span>
+                            <span th:case="'DEACTIVATE_CANDIDATE'">Candidate Deactivated</span>
+                            <span th:case="'ADD_CANDIDATE'">Candidate Added</span>
+                            <span th:case="'UPDATE_CANDIDATE'">Candidate Updated</span>
+                            <span th:case="'DELETE_CANDIDATE'">Candidate Deleted</span>
+                            <span th:case="'CREATE_ELECTION'">Election Created</span>
+                            <span th:case="'UPDATE_ELECTION'">Election Updated</span>
+                            <span th:case="'TOGGLE_ELECTION_STATUS'">Election Status Updated</span>
+                            <span th:case="'DELETE_ELECTION'">Election Deleted</span>
+                            <span th:case="'CAST_VOTE'">Vote Cast</span>
+                            <span th:case="*"
+                                  th:text="${log.action}">ACTION</span>
+                        </span>
+                    </td>
+                    <td th:text="${log.performedBy}"></td>
+                    <td th:text="${log.details}"></td>
+                    <td class="center" th:text="${#temporals.format(log.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="mt-16">
+                <a href="/admin-dashboard" class="btn btn-ghost back-link">Back</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>

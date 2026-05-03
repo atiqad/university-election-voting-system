@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login - PAF-IAST Election Voting System</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<main class="page">
+    <div class="container">
+        <div class="auth-shell auth-shell--login">
+            <div class="auth-brand auth-brand--login" aria-label="Project branding">
+                <div class="auth-brand__row">
+                    <div class="auth-brand__logo" aria-hidden="true">
+                        <img src="/images/University-logo.png" alt="University logo">
+                    </div>
+                    <div>
+                        <h2 class="auth-brand__title">PAF-IAST Election Voting System</h2>
+                        <p class="auth-brand__sub">Secure Campus Election Platform</p>
+                    </div>
+                </div>
+            </div>
+
+            <section class="card auth-card auth-card--single">
+                <div class="auth-form">
+                    <div class="auth-form__top">
+                        <h1 class="auth-form__title">Student Login</h1>
+                        <p class="auth-form__subtitle">Sign in to cast your vote and view results.</p>
+                        <div class="auth-form__bar" aria-hidden="true"></div>
+                    </div>
+
+                    <div th:if="${param.logout}" class="alert success">Logged out successfully.</div>
+                    <div th:if="${param.error}" class="alert error">Invalid email or password.</div>
+                    <div th:if="${param.roleError}" class="alert error">Only student accounts can login from this page.</div>
+                    <div th:if="${successMessage}" class="alert success" th:text="${successMessage}"></div>
+                    <div th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></div>
+                    <div id="lockoutMessage" class="alert error u-hidden"></div>
+
+                    <form th:action="@{/login}" method="post" class="form-box" id="loginForm" novalidate>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="loginRole" value="STUDENT">
+                        <input type="hidden" name="loginType" value="STUDENT">
+
+                        <div class="field">
+                            <label for="email">Email</label>
+                            <div class="login-input">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                </svg>
+                                <input type="email" id="email" name="email"
+                                       placeholder="Enter your email"
+                                       autocomplete="username"
+                                       inputmode="email"
+                                       autocapitalize="none"
+                                       spellcheck="false"
+                                       maxlength="254"
+                                       required>
+                            </div>
+                            <div class="field-error u-hidden" id="emailError" aria-live="polite"></div>
+                        </div>
+
+                        <div class="field">
+                            <label for="password">Password</label>
+                            <div class="login-input">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M6 11h12v10H6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="M12 15v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <input type="password" id="password" name="password"
+                                       placeholder="Enter your password"
+                                       autocomplete="current-password"
+                                       minlength="6"
+                                       maxlength="128"
+                                       required>
+                            </div>
+                            <div class="field-error u-hidden" id="passwordError" aria-live="polite"></div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="loginSubmit">Sign In</button>
+                        </div>
+                    </form>
+
+                    <p class="auth-form__bottom">
+                        Don’t have an account?
+                        <a class="link link--green" href="/register">Register here</a>
+                    </p>
+                </div>
+            </section>
+
+            <div class="auth-card-note">(c) 2026 PAF-IAST Election Voting System. All rights reserved.</div>
+        </div>
+    </div>
+</main>
+
+<script>
+    (function () {
+        var form = document.getElementById('loginForm');
+        var submit = document.getElementById('loginSubmit');
+        var lockout = document.getElementById('lockoutMessage');
+        var email = document.getElementById('email');
+        var password = document.getElementById('password');
+
+        var EMAIL_MAX = 254;
+        var PASSWORD_MIN = 6;
+        var PASSWORD_MAX = 128;
+
+        var STORAGE_KEY = 'vs_login_attempts_v1';
+        var LOCK_KEY = 'vs_login_lock_until_v1';
+        var MAX_ATTEMPTS = 5;
+        var BASE_LOCK_SECONDS = 30;
+        var MAX_LOCK_SECONDS = 10 * 60;
+
+        function nowMs() { return Date.now(); }
+
+        function getInt(key) {
+            var raw = localStorage.getItem(key);
+            var n = parseInt(raw || '0', 10);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function setInt(key, n) {
+            localStorage.setItem(key, String(Math.max(0, n)));
+        }
+
+        function formatSeconds(sec) {
+            sec = Math.max(0, Math.floor(sec));
+            var m = Math.floor(sec / 60);
+            var s = sec % 60;
+            if (m <= 0) return String(s) + 's';
+            return String(m) + 'm ' + String(s) + 's';
+        }
+
+        function updateLockUI() {
+            var until = getInt(LOCK_KEY);
+            var remaining = until - nowMs();
+            if (remaining > 0) {
+                if (lockout) {
+                    lockout.classList.remove('u-hidden');
+                    lockout.textContent = 'Too many failed attempts. Please wait ' + formatSeconds(remaining / 1000) + ' and try again.';
+                }
+                if (submit) submit.disabled = true;
+                if (email) email.disabled = true;
+                if (password) password.disabled = true;
+                return true;
+            }
+
+            if (lockout) lockout.classList.add('u-hidden');
+            if (submit) submit.disabled = false;
+            if (email) email.disabled = false;
+            if (password) password.disabled = false;
+            return false;
+        }
+
+        function tickLockUI() {
+            if (updateLockUI()) {
+                window.setTimeout(tickLockUI, 250);
+            }
+        }
+
+        function markFailure() {
+            var attempts = getInt(STORAGE_KEY) + 1;
+            setInt(STORAGE_KEY, attempts);
+
+            if (attempts >= MAX_ATTEMPTS) {
+                var over = attempts - MAX_ATTEMPTS;
+                var lockSeconds = Math.min(MAX_LOCK_SECONDS, BASE_LOCK_SECONDS * Math.pow(2, over));
+                setInt(LOCK_KEY, nowMs() + lockSeconds * 1000);
+            }
+        }
+
+        function normalizeEmailInput() {
+            if (!email || !email.value) return;
+            email.value = String(email.value).trim().toLowerCase();
+        }
+
+        function setFieldError(input, errEl, message) {
+            if (!input || !errEl) return;
+            if (message) {
+                input.classList.add('input-error');
+                errEl.textContent = message;
+                errEl.classList.remove('u-hidden');
+            } else {
+                input.classList.remove('input-error');
+                errEl.textContent = '';
+                errEl.classList.add('u-hidden');
+            }
+        }
+
+        function validateInputs() {
+            normalizeEmailInput();
+
+            if (!email || !password) return true;
+
+            var ok = true;
+
+            var emailVal = String(email.value || '');
+            if (!emailVal) {
+                setFieldError(email, document.getElementById('emailError'), 'Email is required');
+                ok = false;
+            } else if (typeof email.checkValidity === 'function' && !email.checkValidity()) {
+                setFieldError(email, document.getElementById('emailError'), 'Enter a valid email address');
+                ok = false;
+            } else if (emailVal.length > EMAIL_MAX) {
+                setFieldError(email, document.getElementById('emailError'), 'Enter a valid email address');
+                ok = false;
+            } else {
+                setFieldError(email, document.getElementById('emailError'), '');
+            }
+
+            var passVal = String(password.value || '');
+            if (!passVal) {
+                setFieldError(password, document.getElementById('passwordError'), 'Password is required');
+                ok = false;
+            } else if (passVal.length < PASSWORD_MIN) {
+                setFieldError(password, document.getElementById('passwordError'), 'Password must be at least 6 characters');
+                ok = false;
+            } else if (passVal.length > PASSWORD_MAX) {
+                setFieldError(password, document.getElementById('passwordError'), 'Password must be at least 6 characters');
+                ok = false;
+            } else {
+                setFieldError(password, document.getElementById('passwordError'), '');
+            }
+
+            return ok;
+        }
+
+        try {
+            var params = new URLSearchParams(window.location.search || '');
+            if (params.has('error')) {
+                markFailure();
+            } else if (params.has('logout')) {
+                setInt(STORAGE_KEY, 0);
+                setInt(LOCK_KEY, 0);
+            }
+        } catch (e) {
+        }
+
+        tickLockUI();
+
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                if (updateLockUI()) {
+                    e.preventDefault();
+                    return;
+                }
+                if (!validateInputs()) {
+                    e.preventDefault();
+                    if (lockout) {
+                        lockout.classList.remove('u-hidden');
+                        lockout.textContent = 'Please correct the highlighted fields and try again.';
+                    }
+                }
+            });
+        }
+
+        if (email) {
+            email.addEventListener('input', validateInputs);
+            email.addEventListener('blur', validateInputs);
+        }
+        if (password) {
+            password.addEventListener('input', validateInputs);
+            password.addEventListener('blur', validateInputs);
+        }
+    })();
+</script>
+
+</body>
+</html>

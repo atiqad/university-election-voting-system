@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Active Elections</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="app-header__inner">
+        <a class="logo-section" href="/login">
+            <img th:src="@{/images/university-logo.png}" class="logo-img" alt="University logo">
+            <div>
+                <div class="logo-title">PAF-IAST Election Voting System</div>
+                <div class="logo-subtitle">Secure campus election platform</div>
+            </div>
+        </a>
+    </div>
+</header>
+
+<main class="page">
+    <div class="container">
+        <section class="card">
+            <div class="card__header">
+                <div>
+                    <h1 class="title">Available Elections</h1>
+                    <p class="subtitle">Browse current and upcoming elections</p>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th class="center">ID</th>
+                    <th>Title</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th class="center">Status</th>
+                    <th class="center">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="election : ${elections}"
+                    th:classappend="${election.currentlyOpen} ? 'row-active' : ''">
+                    <td class="center" th:text="${election.id}"></td>
+                    <td th:text="${election.title}"></td>
+                    <td th:text="${election.startDate == null ? '-' : T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy hh:mm a').format(election.startDate)}"></td>
+                    <td th:text="${election.endDate == null ? '-' : T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy hh:mm a').format(election.endDate)}"></td>
+                    <td class="center">
+                        <span class="status-badge status-badge--open" th:if="${election.currentlyOpen}">Active</span>
+                        <span class="status-badge status-badge--inactive" th:if="${!election.currentlyOpen}">Inactive</span>
+                    </td>
+                    <td class="center actions">
+                        <a th:if="${election.currentlyOpen}"
+                           th:href="@{/vote-page(electionId=${election.id})}"
+                           class="btn btn-success btn--sm">Vote</a>
+                        <span th:if="${!election.currentlyOpen}" class="table-muted">Closed</span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(elections)}">
+                    <td colspan="6" class="table-empty">No elections available at the moment</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="mt-16">
+                <a sec:authorize="hasRole('STUDENT')" href="/student-dashboard" class="btn btn-ghost back-link">Back</a>
+                <a sec:authorize="hasRole('ADMIN')" href="/admin-dashboard" class="btn btn-ghost back-link">Back</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>
