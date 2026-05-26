@@ -208,8 +208,7 @@ Open in browser:
 8. Results are displayed automatically
 
 ## Team Contribution
-Atiqad hayat 
-Bilal sami
+
 
 - **Team Leader: Atiqad Hayat** - Backend Development (Spring Boot APIs, database design, Spring Security, business logic, and result processing)
 - **Team Member: Bilal Sami** - Frontend Development (UI implementation with Thymeleaf, page design, and user interaction flows)
@@ -222,6 +221,9 @@ Bilal sami
 - Thymeleaf
 - MySQL
 - Maven
+
+## Diagrams
+All system diagrams are available in the /docs/diagrams folder.
 
 ## License
 
