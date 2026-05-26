@@ -2,6 +2,7 @@ package com.voting.votingsystem.config;
 
 import com.voting.votingsystem.security.RoleBasedAuthenticationSuccessHandler;
 import com.voting.votingsystem.security.RoleBasedAuthenticationFailureHandler;
+import com.voting.votingsystem.security.RoleBasedLogoutSuccessHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +18,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    RoleBasedAuthenticationSuccessHandler successHandler,
-                                                   RoleBasedAuthenticationFailureHandler failureHandler) throws Exception {
+                                                   RoleBasedAuthenticationFailureHandler failureHandler,
+                                                   RoleBasedLogoutSuccessHandler logoutSuccessHandler) throws Exception {
         http
                 // Keep CSRF enabled for browser forms, but ignore typical JSON API endpoints
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/users/**", "/votes/**", "/elections/**", "/candidates/**"))
@@ -77,7 +79,7 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/student-login?logout=true")
+                        .logoutSuccessHandler(logoutSuccessHandler)
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
